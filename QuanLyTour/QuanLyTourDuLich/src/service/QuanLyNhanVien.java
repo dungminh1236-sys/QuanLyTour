@@ -3,211 +3,187 @@ package service;
 import model.HuongDanVien;
 import model.NhanVien;
 import model.NhanVienDieuHanh;
+import util.DanhSach;
+import util.FileUtil;
+import util.MaTuDong;
 import util.NhapLieu;
 
-/** Menu 3. Quản lý Nhân viên. */
-public class QuanLyNhanVien {
-    private NhanVien[] danhSach = new NhanVien[100];
-    private int soLuong = 0;
+import java.util.ArrayList;
+import java.util.List;
 
-    public QuanLyNhanVien() {
-        // Dữ liệu mẫu
-        danhSach[soLuong++] = new HuongDanVien("NV001", "Nguyễn Minh A", "0901111111");
-        danhSach[soLuong++] = new HuongDanVien("NV002", "Trần Văn B", "0902222222");
-        danhSach[soLuong++] = new NhanVienDieuHanh("NV003", "Lê Văn C", "0903333333");
+/** Menu 3 - Quan ly Nhan vien. */
+public class QuanLyNhanVien {
+    private static final String FILE = "nhanvien.txt";
+    private static final String TIEU_DE = "Ma NV | Ho ten | Chuc vu | SDT";
+
+    private final DanhSach<NhanVien> ds = new DanhSach<>();
+
+    // Danh sach HDV rieng, luon dong bo voi ds (QuanLyDatTour giu tham chieu toi list nay)
+    private final List<HuongDanVien> dsHuongDanVien = new ArrayList<>();
+
+    public List<NhanVien> getDanhSach() {
+        return ds.getDanhSach();
     }
 
-    private static final String TIEU_DE = "Mã NV | Họ tên | Chức vụ | SĐT";
-
-    /** Sinh mã tự động: NV001, NV002, ... */
-    private String taoMa() {
-        int max = 0;
-        for (int i = 0; i < soLuong; i++) {
-            try {
-                int so = Integer.parseInt(danhSach[i].getMa().substring(2));
-                if (so > max) {
-                    max = so;
-                }
-            } catch (NumberFormatException e) {
-                // bỏ qua mã không đúng dạng NVxxx
-            }
-        }
-        String s = "" + (max + 1);
-        while (s.length() < 3) {
-            s = "0" + s;
-        }
-        return "NV" + s;
+    public List<HuongDanVien> getDanhSachHuongDanVien() {
+        return dsHuongDanVien;
     }
 
     public NhanVien timTheoMa(String ma) {
-        for (int i = 0; i < soLuong; i++) {
-            if (danhSach[i].getMa().equalsIgnoreCase(ma)) {
-                return danhSach[i];
-            }
-        }
+        return ds.tim(nv -> nv.getMa().equalsIgnoreCase(ma));
+    }
+
+    /** Tim huong dan vien theo ma (null neu khong co hoac khong phai HDV). */
+    public HuongDanVien timHuongDanVienTheoMa(String ma) {
+        NhanVien nv = timTheoMa(ma);
+        if (nv instanceof HuongDanVien) return (HuongDanVien) nv;
         return null;
     }
 
-    public void chayMenu() {
+    // ================= MENU =================
+    public void menu() {
         int chon;
         do {
-            System.out.println();
-            System.out.println("========== QUẢN LÝ NHÂN VIÊN ==========");
-            System.out.println("1. Xem danh sách");
-            System.out.println("2. Thêm nhân viên");
-            System.out.println("3. Sửa nhân viên");
-            System.out.println("4. Xóa nhân viên");
-            System.out.println("5. Tìm kiếm");
-            System.out.println("0. Quay lại");
-            chon = NhapLieu.docSo("Nhập lựa chọn: ", 0, 5);
-
-            if (chon == 1) {
-                hienThiTatCa();
-            } else if (chon == 2) {
-                them();
-            } else if (chon == 3) {
-                sua();
-            } else if (chon == 4) {
-                xoa();
-            } else if (chon == 5) {
-                timKiem();
+            System.out.println("\n========== QUAN LY NHAN VIEN ==========");
+            System.out.println("1. Xem danh sach");
+            System.out.println("2. Them nhan vien");
+            System.out.println("3. Sua nhan vien");
+            System.out.println("4. Xoa nhan vien");
+            System.out.println("5. Tim kiem");
+            System.out.println("0. Quay lai");
+            chon = NhapLieu.docSo("Nhap lua chon: ", 0, 5);
+            switch (chon) {
+                case 1: xemDanhSach(); break;
+                case 2: them(); break;
+                case 3: sua(); break;
+                case 4: xoa(); break;
+                case 5: timKiem(); break;
+                default: break;
             }
         } while (chon != 0);
     }
 
-    public void hienThiTatCa() {
-        if (soLuong == 0) {
-            System.out.println("Danh sách trống!");
+    // ================= CHUC NANG =================
+    public void xemDanhSach() {
+        hienThiDanhSach(ds.getDanhSach());
+        System.out.println("Tong so nhan vien: " + ds.size());
+    }
+
+    private void hienThiDanhSach(List<NhanVien> list) {
+        if (list.isEmpty()) {
+            System.out.println("(Khong co nhan vien nao)");
             return;
         }
-        System.out.println();
         System.out.println(TIEU_DE);
-        for (int i = 0; i < soLuong; i++) {
-            System.out.println(danhSach[i]);
+        for (NhanVien nv : list) System.out.println(nv);
+    }
+
+    /** In danh sach huong dan vien (cho nguoi dung chon khi dat tour). */
+    public void hienThiDanhSachHuongDanVien() {
+        if (dsHuongDanVien.isEmpty()) {
+            System.out.println("Chua co huong dan vien nao!");
+            return;
         }
+        System.out.println(TIEU_DE);
+        for (HuongDanVien h : dsHuongDanVien) System.out.println(h);
     }
 
     public void them() {
-        if (soLuong == danhSach.length) {
-            System.out.println("Danh sách đã đầy, không thể thêm!");
-            return;
-        }
-        String maMoi = taoMa();
-        System.out.println("Chọn loại nhân viên:");
-        System.out.println("1. Hướng dẫn viên");
-        System.out.println("2. Nhân viên điều hành");
-        int loai = NhapLieu.docSo("Nhập lựa chọn: ", 1, 2);
-        String hoTen = NhapLieu.docChuoiBatBuoc("Họ tên: ");
-        String sdt = NhapLieu.docSdt("SĐT: ");
+        System.out.println("Chon loai nhan vien:");
+        System.out.println("1. Huong dan vien");
+        System.out.println("2. Nhan vien dieu hanh");
+        int loai = NhapLieu.docSo("Nhap lua chon: ", 1, 2);
+        String hoTen = NhapLieu.docChuoiBatBuoc("Ho ten: ");
+        String sdt = NhapLieu.docSdt("SDT: ");
+        String ma = MaTuDong.taoMa(MaTuDong.NHAN_VIEN);
 
-        // Đa hình: biến kiểu cha, đối tượng kiểu con
+        // Da hinh: bien kieu cha, doi tuong kieu con
         NhanVien nv;
         if (loai == 1) {
-            nv = new HuongDanVien(maMoi, hoTen, sdt);
+            HuongDanVien h = new HuongDanVien(ma, hoTen, sdt);
+            dsHuongDanVien.add(h);
+            nv = h;
         } else {
-            nv = new NhanVienDieuHanh(maMoi, hoTen, sdt);
+            nv = new NhanVienDieuHanh(ma, hoTen, sdt);
         }
-        danhSach[soLuong++] = nv;
-        System.out.println("Thêm thành công! Mã: " + maMoi);
+        ds.them(nv);
+        luuFile();
+        System.out.println("Them thanh cong! Ma: " + nv.getMa());
     }
 
     public void sua() {
-        String ma = NhapLieu.docChuoiBatBuoc("Nhập mã cần sửa: ");
-        NhanVien nv = timTheoMa(ma);
-        if (nv == null) {
-            System.out.println("Không tìm thấy mã " + ma + "!");
-            return;
-        }
-        System.out.println("(Nhấn Enter để giữ nguyên giá trị cũ)");
+        NhanVien nv = timTheoMa(NhapLieu.docChuoi("Nhap ma nhan vien can sua: "));
+        if (nv == null) { System.out.println("Khong tim thay nhan vien!"); return; }
+
+        System.out.println("Thong tin hien tai:");
+        System.out.println(TIEU_DE);
+        System.out.println(nv);
+        System.out.println("(De trong de giu nguyen)");
+
         nv.capNhat();
-        System.out.println("Sửa thành công!");
+        luuFile();
+        System.out.println("Sua nhan vien thanh cong!");
     }
 
     public void xoa() {
-        String ma = NhapLieu.docChuoiBatBuoc("Nhập mã cần xóa: ");
-        NhanVien nv = timTheoMa(ma);
-        if (nv == null) {
-            System.out.println("Không tìm thấy mã " + ma + "!");
-            return;
+        NhanVien nv = timTheoMa(NhapLieu.docChuoi("Nhap ma nhan vien can xoa: "));
+        if (nv == null) { System.out.println("Khong tim thay nhan vien!"); return; }
+        if (NhapLieu.xacNhan("Ban co chac muon xoa?")) {
+            ds.xoa(nv);
+            if (nv instanceof HuongDanVien) dsHuongDanVien.remove(nv);
+            luuFile();
+            System.out.println("Xoa nhan vien thanh cong!");
+        } else {
+            System.out.println("Da huy xoa.");
         }
-        if (!NhapLieu.xacNhan("Bạn chắc chắn muốn xóa " + nv.getMa() + "?")) {
-            System.out.println("Đã hủy xóa.");
-            return;
-        }
-        int viTri = 0;
-        for (int i = 0; i < soLuong; i++) {
-            if (danhSach[i] == nv) {
-                viTri = i;
-                break;
-            }
-        }
-        for (int i = viTri; i < soLuong - 1; i++) {
-            danhSach[i] = danhSach[i + 1];
-        }
-        danhSach[soLuong - 1] = null;
-        soLuong--;
-        System.out.println("Xóa thành công!");
     }
 
     public void timKiem() {
-        String tuKhoa = NhapLieu.docChuoiBatBuoc("Nhập từ khóa: ");
-        int dem = 0;
-        for (int i = 0; i < soLuong; i++) {
-            if (danhSach[i].khop(tuKhoa)) {
-                if (dem == 0) {
-                    System.out.println();
-                    System.out.println(TIEU_DE);
+        String k = NhapLieu.docChuoi("Nhap tu khoa: ");
+
+        List<NhanVien> kq = new ArrayList<>();
+        for (NhanVien nv : ds) if (nv.khop(k)) kq.add(nv);
+
+        System.out.println("Ket qua:");
+        hienThiDanhSach(kq);
+        if (!kq.isEmpty()) System.out.println("Tim thay " + kq.size() + " ket qua.");
+    }
+
+    // ================= FILE =================
+    /** Dong trong file: ma|loai|hoTen|sdt (loai = HDV hoac DH) */
+    public void docTuFile() {
+        ds.clear();
+        dsHuongDanVien.clear();
+        for (String dong : FileUtil.docFile(FILE)) {
+            try {
+                String[] p = dong.split("\\|");
+                String ma = p[0].trim();
+                String loai = p[1].trim();
+                String hoTen = p[2].trim();
+                String sdt = p[3].trim();
+
+                NhanVien nv;
+                if (loai.equalsIgnoreCase("HDV")) {
+                    HuongDanVien h = new HuongDanVien(ma, hoTen, sdt);
+                    dsHuongDanVien.add(h);
+                    nv = h;
+                } else {
+                    nv = new NhanVienDieuHanh(ma, hoTen, sdt);
                 }
-                System.out.println(danhSach[i]);
-                dem++;
+                ds.them(nv);
+                MaTuDong.capNhat(ma);
+            } catch (Exception e) {
+                System.out.println("Bo qua dong loi trong " + FILE + ": " + dong);
             }
-        }
-        if (dem == 0) {
-            System.out.println("Không tìm thấy kết quả phù hợp!");
-        } else {
-            System.out.println("Tìm thấy " + dem + " kết quả.");
         }
     }
 
-    // ---------- Chuẩn bị cho phần ĐẶT TOUR ----------
-
-    /** Mảng hướng dẫn viên để phần đặt tour chọn gán vào tour. */
-    public HuongDanVien[] getDanhSachHuongDanVien() {
-        int dem = 0;
-        for (int i = 0; i < soLuong; i++) {
-            if (danhSach[i] instanceof HuongDanVien) {
-                dem++;
-            }
+    public void luuFile() {
+        List<String> dong = new ArrayList<>();
+        for (NhanVien nv : ds) {
+            String loai = (nv instanceof HuongDanVien) ? "HDV" : "DH";
+            dong.add(nv.getMa() + "|" + loai + "|" + nv.getHoTen() + "|" + nv.getSdt());
         }
-        HuongDanVien[] kq = new HuongDanVien[dem];
-        int viTri = 0;
-        for (int i = 0; i < soLuong; i++) {
-            if (danhSach[i] instanceof HuongDanVien) {
-                kq[viTri++] = (HuongDanVien) danhSach[i];
-            }
-        }
-        return kq;
-    }
-
-    /** Tìm hướng dẫn viên theo mã (null nếu không có hoặc không phải HDV). */
-    public HuongDanVien timHuongDanVienTheoMa(String ma) {
-        NhanVien nv = timTheoMa(ma);
-        if (nv instanceof HuongDanVien) {
-            return (HuongDanVien) nv;
-        }
-        return null;
-    }
-
-    /** In danh sách hướng dẫn viên (cho người dùng chọn khi đặt tour). */
-    public void hienThiDanhSachHuongDanVien() {
-        HuongDanVien[] ds = getDanhSachHuongDanVien();
-        if (ds.length == 0) {
-            System.out.println("Chưa có hướng dẫn viên nào!");
-            return;
-        }
-        System.out.println(TIEU_DE);
-        for (int i = 0; i < ds.length; i++) {
-            System.out.println(ds[i]);
-        }
+        FileUtil.ghiFile(FILE, dong);
     }
 }
