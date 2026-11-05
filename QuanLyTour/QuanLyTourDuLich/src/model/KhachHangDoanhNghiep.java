@@ -42,6 +42,11 @@ public class KhachHangDoanhNghiep extends KhachHang {
     }
 
     @Override
+    public String toFileString() {
+        return "DOANHNGHIEP|" + ma + "|" + hoTen + "|" + sdt + "|" + maSoThue;
+    }
+
+    @Override
     public boolean khop(String tuKhoa) {
         return super.khop(tuKhoa) || maSoThue.contains(tuKhoa);
     }
