@@ -42,6 +42,11 @@ public class KhachHangCaNhan extends KhachHang {
     }
 
     @Override
+    public String toFileString() {
+        return "CANHAN|" + ma + "|" + hoTen + "|" + sdt + "|" + cccd;
+    }
+
+    @Override
     public boolean khop(String tuKhoa) {
         return super.khop(tuKhoa) || cccd.contains(tuKhoa);
     }

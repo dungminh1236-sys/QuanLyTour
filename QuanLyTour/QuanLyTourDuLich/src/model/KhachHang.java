@@ -21,6 +21,9 @@ public abstract class KhachHang {
     /** Mỗi loại khách hàng tự khai báo loại của mình (đa hình). */
     public abstract String getLoai();
 
+    /** Một dòng ghi vào file khachhang.txt (lớp con tự quy định định dạng). */
+    public abstract String toFileString();
+
     /** Khách hàng có khớp từ khóa tìm kiếm không (lớp con mở rộng thêm). */
     public boolean khop(String tuKhoa) {
         String k = tuKhoa.toLowerCase();

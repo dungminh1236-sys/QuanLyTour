@@ -3,7 +3,12 @@ package service;
 import model.KhachHang;
 import model.KhachHangCaNhan;
 import model.KhachHangDoanhNghiep;
+import util.FileUtil;
+import util.MaTuDong;
 import util.NhapLieu;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Menu 2. Quản lý Khách hàng. */
 public class QuanLyKhachHang {
@@ -12,31 +17,53 @@ public class QuanLyKhachHang {
 
     private static final String TIEU_DE = "Mã KH | Họ tên | Loại | SĐT";
 
+    private static final String FILE = "khachhang.txt";
+
     public QuanLyKhachHang() {
-        // Dữ liệu mẫu
-        danhSach[soLuong++] = new KhachHangCaNhan("KH001", "Nguyễn Văn An", "0901234567", "079123456781");
-        danhSach[soLuong++] = new KhachHangCaNhan("KH002", "Trần Thị Mai", "0912345678", "079123456782");
-        danhSach[soLuong++] = new KhachHangDoanhNghiep("KH003", "Công ty ABC", "0281234567", "0312345678");
+        docFile();
     }
 
-    /** Sinh mã tự động: KH001, KH002, ... */
-    private String taoMa() {
-        int max = 0;
-        for (int i = 0; i < soLuong; i++) {
-            try {
-                int so = Integer.parseInt(danhSach[i].getMa().substring(2));
-                if (so > max) {
-                    max = so;
-                }
-            } catch (NumberFormatException e) {
-                // bỏ qua mã không đúng dạng KHxxx
+    // ---------- Đọc / ghi file ----------
+
+    /** Đọc khachhang.txt vào mảng, đồng thời cập nhật bộ đếm MaTuDong. */
+    private void docFile() {
+        soLuong = 0;
+        for (String dong : FileUtil.docFile(FILE)) {
+            KhachHang kh = taoTuDong(dong);
+            if (kh == null) {
+                System.out.println("Bỏ qua dòng sai định dạng trong " + FILE + ": " + dong);
+                continue;
             }
+            if (soLuong == danhSach.length) {
+                break;
+            }
+            danhSach[soLuong++] = kh;
+            MaTuDong.capNhat(kh.getMa());
         }
-        String s = "" + (max + 1);
-        while (s.length() < 3) {
-            s = "0" + s;
+    }
+
+    /** Ghi toàn bộ danh sách ra khachhang.txt. */
+    private void ghiFile() {
+        List<String> cacDong = new ArrayList<>();
+        for (int i = 0; i < soLuong; i++) {
+            cacDong.add(danhSach[i].toFileString());
         }
-        return "KH" + s;
+        FileUtil.ghiFile(FILE, cacDong);
+    }
+
+    /** Chuyển 1 dòng file thành đối tượng đúng loại (null nếu sai định dạng). */
+    private KhachHang taoTuDong(String dong) {
+        String[] t = dong.split("\\|");
+        if (t.length != 5) {
+            return null;
+        }
+        if (t[0].equals("CANHAN")) {
+            return new KhachHangCaNhan(t[1], t[2], t[3], t[4]);
+        }
+        if (t[0].equals("DOANHNGHIEP")) {
+            return new KhachHangDoanhNghiep(t[1], t[2], t[3], t[4]);
+        }
+        return null;
     }
 
     public KhachHang timTheoMa(String ma) {
@@ -93,7 +120,7 @@ public class QuanLyKhachHang {
             System.out.println("Danh sách đã đầy, không thể thêm!");
             return;
         }
-        String maMoi = taoMa();
+        String maMoi = MaTuDong.taoMa(MaTuDong.KHACH_HANG);
         System.out.println("Chọn loại:");
         System.out.println("1. Khách cá nhân");
         System.out.println("2. Khách doanh nghiệp");
@@ -113,6 +140,7 @@ public class QuanLyKhachHang {
             kh = new KhachHangDoanhNghiep(maMoi, ten, sdt, mst);
         }
         danhSach[soLuong++] = kh;
+        ghiFile();
         System.out.println("Thêm thành công! Mã khách hàng: " + maMoi);
     }
 
@@ -127,6 +155,7 @@ public class QuanLyKhachHang {
         kh.hienThiChiTiet();
         System.out.println("(Nhấn Enter để giữ nguyên giá trị cũ)");
         kh.capNhat(); // đa hình: mỗi loại hỏi thêm thuộc tính riêng
+        ghiFile();
         System.out.println("Sửa thành công!");
     }
 
@@ -153,6 +182,7 @@ public class QuanLyKhachHang {
         }
         danhSach[soLuong - 1] = null;
         soLuong--;
+        ghiFile();
         System.out.println("Xóa thành công!");
     }
 
