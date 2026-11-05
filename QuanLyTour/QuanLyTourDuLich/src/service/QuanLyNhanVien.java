@@ -11,14 +11,14 @@ import util.NhapLieu;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Menu 3 - Quan ly Nhan vien. */
+/** Menu 3 - Quản lý Nhân viên. */
 public class QuanLyNhanVien {
     private static final String FILE = "nhanvien.txt";
-    private static final String TIEU_DE = "Ma NV | Ho ten | Chuc vu | SDT";
+    private static final String TIEU_DE = "Mã NV | Họ tên | Chức vụ | SĐT";
 
     private final DanhSach<NhanVien> ds = new DanhSach<>();
 
-    // Danh sach HDV rieng, luon dong bo voi ds (QuanLyDatTour giu tham chieu toi list nay)
+    // Danh sách HDV riêng, luôn đồng bộ với ds (QuanLyDatTour giữ tham chiếu tới list này)
     private final List<HuongDanVien> dsHuongDanVien = new ArrayList<>();
 
     public List<NhanVien> getDanhSach() {
@@ -33,7 +33,7 @@ public class QuanLyNhanVien {
         return ds.tim(nv -> nv.getMa().equalsIgnoreCase(ma));
     }
 
-    /** Tim huong dan vien theo ma (null neu khong co hoac khong phai HDV). */
+    /** Tìm hướng dẫn viên theo mã (null nếu không có hoặc không phải HDV). */
     public HuongDanVien timHuongDanVienTheoMa(String ma) {
         NhanVien nv = timTheoMa(ma);
         if (nv instanceof HuongDanVien) return (HuongDanVien) nv;
@@ -44,14 +44,14 @@ public class QuanLyNhanVien {
     public void menu() {
         int chon;
         do {
-            System.out.println("\n========== QUAN LY NHAN VIEN ==========");
-            System.out.println("1. Xem danh sach");
-            System.out.println("2. Them nhan vien");
-            System.out.println("3. Sua nhan vien");
-            System.out.println("4. Xoa nhan vien");
-            System.out.println("5. Tim kiem");
-            System.out.println("0. Quay lai");
-            chon = NhapLieu.docSo("Nhap lua chon: ", 0, 5);
+            System.out.println("\n========== QUẢN LÝ NHÂN VIÊN ==========");
+            System.out.println("1. Xem danh sách");
+            System.out.println("2. Thêm nhân viên");
+            System.out.println("3. Sửa nhân viên");
+            System.out.println("4. Xóa nhân viên");
+            System.out.println("5. Tìm kiếm");
+            System.out.println("0. Quay lại");
+            chon = NhapLieu.docSo("Nhập lựa chọn: ", 0, 5);
             switch (chon) {
                 case 1: xemDanhSach(); break;
                 case 2: them(); break;
@@ -63,25 +63,25 @@ public class QuanLyNhanVien {
         } while (chon != 0);
     }
 
-    // ================= CHUC NANG =================
+    // ================= CHỨC NĂNG =================
     public void xemDanhSach() {
         hienThiDanhSach(ds.getDanhSach());
-        System.out.println("Tong so nhan vien: " + ds.size());
+        System.out.println("Tổng số nhân viên: " + ds.size());
     }
 
     private void hienThiDanhSach(List<NhanVien> list) {
         if (list.isEmpty()) {
-            System.out.println("(Khong co nhan vien nao)");
+            System.out.println("(Không có nhân viên nào)");
             return;
         }
         System.out.println(TIEU_DE);
         for (NhanVien nv : list) System.out.println(nv);
     }
 
-    /** In danh sach huong dan vien (cho nguoi dung chon khi dat tour). */
+    /** In danh sách hướng dẫn viên (cho người dùng chọn khi đặt tour). */
     public void hienThiDanhSachHuongDanVien() {
         if (dsHuongDanVien.isEmpty()) {
-            System.out.println("Chua co huong dan vien nao!");
+            System.out.println("Chưa có hướng dẫn viên nào!");
             return;
         }
         System.out.println(TIEU_DE);
@@ -89,15 +89,15 @@ public class QuanLyNhanVien {
     }
 
     public void them() {
-        System.out.println("Chon loai nhan vien:");
-        System.out.println("1. Huong dan vien");
-        System.out.println("2. Nhan vien dieu hanh");
-        int loai = NhapLieu.docSo("Nhap lua chon: ", 1, 2);
-        String hoTen = NhapLieu.docChuoiBatBuoc("Ho ten: ");
-        String sdt = NhapLieu.docSdt("SDT: ");
+        System.out.println("Chọn loại nhân viên:");
+        System.out.println("1. Hướng dẫn viên");
+        System.out.println("2. Nhân viên điều hành");
+        int loai = NhapLieu.docSo("Nhập lựa chọn: ", 1, 2);
+        String hoTen = NhapLieu.docChuoiBatBuoc("Họ tên: ");
+        String sdt = NhapLieu.docSdt("SĐT: ");
         String ma = MaTuDong.taoMa(MaTuDong.NHAN_VIEN);
 
-        // Da hinh: bien kieu cha, doi tuong kieu con
+        // Đa hình: biến kiểu cha, đối tượng kiểu con
         NhanVien nv;
         if (loai == 1) {
             HuongDanVien h = new HuongDanVien(ma, hoTen, sdt);
@@ -108,49 +108,49 @@ public class QuanLyNhanVien {
         }
         ds.them(nv);
         luuFile();
-        System.out.println("Them thanh cong! Ma: " + nv.getMa());
+        System.out.println("Thêm thành công! Mã: " + nv.getMa());
     }
 
     public void sua() {
-        NhanVien nv = timTheoMa(NhapLieu.docChuoi("Nhap ma nhan vien can sua: "));
-        if (nv == null) { System.out.println("Khong tim thay nhan vien!"); return; }
+        NhanVien nv = timTheoMa(NhapLieu.docChuoi("Nhập mã nhân viên cần sửa: "));
+        if (nv == null) { System.out.println("Không tìm thấy nhân viên!"); return; }
 
-        System.out.println("Thong tin hien tai:");
+        System.out.println("Thông tin hiện tại:");
         System.out.println(TIEU_DE);
         System.out.println(nv);
-        System.out.println("(De trong de giu nguyen)");
+        System.out.println("(Để trống để giữ nguyên)");
 
         nv.capNhat();
         luuFile();
-        System.out.println("Sua nhan vien thanh cong!");
+        System.out.println("Sửa nhân viên thành công!");
     }
 
     public void xoa() {
-        NhanVien nv = timTheoMa(NhapLieu.docChuoi("Nhap ma nhan vien can xoa: "));
-        if (nv == null) { System.out.println("Khong tim thay nhan vien!"); return; }
-        if (NhapLieu.xacNhan("Ban co chac muon xoa?")) {
+        NhanVien nv = timTheoMa(NhapLieu.docChuoi("Nhập mã nhân viên cần xóa: "));
+        if (nv == null) { System.out.println("Không tìm thấy nhân viên!"); return; }
+        if (NhapLieu.xacNhan("Bạn có chắc muốn xóa?")) {
             ds.xoa(nv);
             if (nv instanceof HuongDanVien) dsHuongDanVien.remove(nv);
             luuFile();
-            System.out.println("Xoa nhan vien thanh cong!");
+            System.out.println("Xóa nhân viên thành công!");
         } else {
-            System.out.println("Da huy xoa.");
+            System.out.println("Đã hủy xóa.");
         }
     }
 
     public void timKiem() {
-        String k = NhapLieu.docChuoi("Nhap tu khoa: ");
+        String k = NhapLieu.docChuoi("Nhập từ khóa: ");
 
         List<NhanVien> kq = new ArrayList<>();
         for (NhanVien nv : ds) if (nv.khop(k)) kq.add(nv);
 
-        System.out.println("Ket qua:");
+        System.out.println("Kết quả:");
         hienThiDanhSach(kq);
-        if (!kq.isEmpty()) System.out.println("Tim thay " + kq.size() + " ket qua.");
+        if (!kq.isEmpty()) System.out.println("Tìm thấy " + kq.size() + " kết quả.");
     }
 
     // ================= FILE =================
-    /** Dong trong file: ma|loai|hoTen|sdt (loai = HDV hoac DH) */
+    /** Dòng trong file: ma|loai|hoTen|sdt (loai = HDV hoặc DH) */
     public void docTuFile() {
         ds.clear();
         dsHuongDanVien.clear();
@@ -173,7 +173,7 @@ public class QuanLyNhanVien {
                 ds.them(nv);
                 MaTuDong.capNhat(ma);
             } catch (Exception e) {
-                System.out.println("Bo qua dong loi trong " + FILE + ": " + dong);
+                System.out.println("Bỏ qua dòng lỗi trong " + FILE + ": " + dong);
             }
         }
     }
